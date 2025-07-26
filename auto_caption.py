@@ -8,7 +8,8 @@ Auto Caption System
 2. 调用Whisper进行语音识别获得带时间戳的文本
 3. 调用OpenAI o1-mini模型翻译文本
 4. 生成SRT字幕文件
-5. 使用FFmpeg将字幕嵌入视频
+5. 交互模式：暂停让用户手动修正SRT字幕（可选）
+6. 使用FFmpeg将字幕嵌入视频
 """
 
 import os
@@ -268,7 +269,7 @@ class AutoCaptionSystem:
     
     def process_video(self, video_path: str, output_dir: str = None, 
                      whisper_model: str = "base", translate: bool = True, 
-                     duration: Optional[int] = None, hard_sub: bool = True, bilingual: bool = False) -> bool:
+                     duration: Optional[int] = None, hard_sub: bool = True, bilingual: bool = False, interactive: bool = False) -> bool:
         """
         处理视频文件的完整流程
         
@@ -280,6 +281,7 @@ class AutoCaptionSystem:
             duration: 限制处理时长（秒），None表示处理全部
             hard_sub: 是否使用硬字幕（烧录到视频中）
             bilingual: 是否生成双语字幕（原文+翻译）
+            interactive: 是否启用交互模式，允许手动修正SRT字幕
             
         Returns:
             bool: 处理成功返回True，失败返回False
@@ -325,7 +327,18 @@ class AutoCaptionSystem:
             # 4. 生成SRT字幕
             self.generate_srt(segments, str(srt_path), translate, bilingual)
             
-            # 5. 嵌入字幕
+            # 5. 交互式修正SRT字幕（如果启用）
+            if interactive:
+                print(f"\n字幕文件已生成: {srt_path}")
+                print("请在外部编辑器中修正SRT字幕文件，完成后按Enter继续...")
+                input("按Enter键继续字幕嵌入...")
+                
+                # 检查SRT文件是否仍然存在且有效
+                if not Path(srt_path).exists():
+                    print(f"错误: SRT文件不存在: {srt_path}")
+                    return False
+            
+            # 6. 嵌入字幕
             if not self.embed_subtitles(str(video_path), str(srt_path), str(output_video_path), hard_sub, duration):
                 return False
             
@@ -365,6 +378,8 @@ def main():
                        help="使用软字幕（默认使用硬字幕）")
     parser.add_argument("--bilingual", action="store_true", 
                        help="生成双语字幕（原文+翻译）")
+    parser.add_argument("--interactive", action="store_true", 
+                       help="启用交互模式，生成SRT后暂停以便手动修正")
     
     args = parser.parse_args()
     
@@ -389,7 +404,8 @@ def main():
         translate=not args.no_translate,
         duration=args.duration,
         hard_sub=not args.soft_sub,
-        bilingual=args.bilingual
+        bilingual=args.bilingual,
+        interactive=args.interactive
     )
     
     if success:
