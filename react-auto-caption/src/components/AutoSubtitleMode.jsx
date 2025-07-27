@@ -15,7 +15,7 @@ const AutoSubtitleMode = () => {
     baseUrl: 'https://api.openai.com/v1',
     sourceLanguage: 'auto',
     targetLanguage: 'zh',
-    translationModel: '', // Will be auto-selected
+    translationModel: 'o1-mini',
     bilingual: true,
     fontSize: 24,
     fontColor: 'white',
@@ -85,14 +85,29 @@ const AutoSubtitleMode = () => {
       
       if (settings.targetLanguage !== 'none') {
         updateProgress('Translating text...', 70);
+        console.log('Starting translation with settings:', {
+          targetLanguage: settings.targetLanguage,
+          translationModel: settings.translationModel,
+          bilingual: settings.bilingual
+        });
         
         for (let i = 0; i < segments.length; i++) {
-          const translatedText = await whisperService.translateText(
-            segments[i].text, 
-            settings.targetLanguage,
-            settings.translationModel || 'gpt-3.5-turbo'
-          );
-          segments[i].translatedText = translatedText;
+          try {
+            const translatedText = await whisperService.translateText(
+              segments[i].text, 
+              settings.targetLanguage,
+              settings.translationModel || 'o1-mini'
+            );
+            segments[i].translatedText = translatedText;
+            
+            console.log(`Segment ${i + 1} translation:`, {
+              original: segments[i].text,
+              translated: translatedText
+            });
+          } catch (error) {
+            console.error(`Translation failed for segment ${i + 1}:`, error);
+            segments[i].translatedText = `[Translation failed: ${error.message}]`;
+          }
           
           updateProgress(
             `Translating segment ${i + 1}/${segments.length}...`, 
@@ -104,6 +119,13 @@ const AutoSubtitleMode = () => {
       updateProgress('Generating SRT file...', 95);
       const srtContent = generateSRT(segments, {
         bilingual: settings.bilingual && settings.targetLanguage !== 'none'
+      });
+      
+      console.log('Generated SRT with options:', {
+        bilingual: settings.bilingual && settings.targetLanguage !== 'none',
+        targetLanguage: settings.targetLanguage,
+        segmentCount: segments.length,
+        hasTranslations: segments.some(s => s.translatedText)
       });
 
       updateProgress('SRT Generated!', 100);

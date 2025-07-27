@@ -99,16 +99,22 @@ export class WhisperService {
 
       if (isO1Model) {
         // o1 models use max_completion_tokens and don't support temperature
-        requestParams.max_completion_tokens = Math.max(50, Math.ceil(text.length * 1.5));
+        requestParams.max_completion_tokens = 2000;
       } else {
         // Other models use max_tokens and support temperature
         requestParams.temperature = 0.3;
-        requestParams.max_tokens = Math.max(50, Math.ceil(text.length * 1.5));
+        requestParams.max_tokens = Math.max(100, Math.ceil(text.length * 2));
       }
 
       const response = await this.client.chat.completions.create(requestParams);
 
-      return response.choices[0].message.content.trim();
+      const content = response.choices[0].message.content;
+      if (!content || content.trim() === '') {
+        console.warn('Empty translation response, using original text');
+        return text;
+      }
+      
+      return content.trim();
     } catch (error) {
       console.error('Translation error:', error);
       throw new Error(`Translation failed: ${error.message}`);

@@ -311,6 +311,10 @@ const ManualSubtitleMode = () => {
               onClick={processVideoWithSubtitles}
               className="button"
               disabled={!selectedVideo || !selectedSRT || processing.status === 'processing'}
+              style={{ 
+                opacity: (!selectedVideo || !selectedSRT || processing.status === 'processing') ? 0.5 : 1,
+                cursor: (!selectedVideo || !selectedSRT || processing.status === 'processing') ? 'not-allowed' : 'pointer'
+              }}
             >
               <Play size={20} style={{ marginRight: '0.5rem' }} />
               {processing.status === 'processing' ? 'Processing...' : 'Embed Subtitles'}
@@ -327,9 +331,20 @@ const ManualSubtitleMode = () => {
           </div>
         </div>
         
+        {/* Debug info */}
+        <div style={{ fontSize: '12px', color: '#666', marginTop: '0.5rem' }}>
+          Debug: Video={selectedVideo ? '✓' : '✗'}, SRT={selectedSRT ? '✓' : '✗'}, Status={processing.status}
+        </div>
+        
         {(!selectedVideo || !selectedSRT) && (
           <p style={{ color: '#718096', marginTop: '1rem' }}>
             Please upload both a video file and an SRT subtitle file to begin processing.
+          </p>
+        )}
+        
+        {selectedVideo && selectedSRT && (
+          <p style={{ color: '#38a169', marginTop: '1rem', fontWeight: '600' }}>
+            ✅ Ready to process! Click "Embed Subtitles" to start.
           </p>
         )}
       </div>

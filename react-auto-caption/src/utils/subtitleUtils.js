@@ -28,6 +28,16 @@ export function generateSRT(segments, options = {}) {
       displayText = segment.translatedText;
     }
     
+    // Debug: log the segment data to help troubleshoot
+    if (bilingual) {
+      console.log('Bilingual mode - Segment:', {
+        original: segment.text,
+        translated: segment.translatedText,
+        bilingual: bilingual,
+        displayText: displayText
+      });
+    }
+    
     srtContent += `${index + 1}\n`;
     srtContent += `${startTime} --> ${endTime}\n`;
     srtContent += `${displayText}\n\n`;

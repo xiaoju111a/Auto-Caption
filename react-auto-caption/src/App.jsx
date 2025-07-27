@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import AutoSubtitleSidebar from './components/AutoSubtitleSidebar';
 import AutoSubtitleContent from './components/AutoSubtitleContent';
 import ManualSubtitleSidebar from './components/ManualSubtitleSidebar';
-import ManualSubtitleContent from './components/ManualSubtitleContent';
+import ManualSubtitleMode from './components/ManualSubtitleMode';
 import { Bot, Upload } from 'lucide-react';
 
 function App() {
@@ -68,28 +68,26 @@ function App() {
 
       {/* Main Layout */}
       <div className="main-content">
-        {/* Sidebar */}
-        <div className="sidebar">
-          {activeTab === 'auto' ? (
-            <AutoSubtitleSidebar 
-              onGenerate={handleAutoGenerate}
-              onDataChange={setAutoData}
-            />
-          ) : (
-            <ManualSubtitleSidebar />
-          )}
-        </div>
-
         {/* Content Area */}
-        <div className="content-area">
+        <div className="content-area" style={{ gridColumn: activeTab === 'manual' ? '1 / -1' : 'auto' }}>
           {activeTab === 'auto' ? (
-            <AutoSubtitleContent 
-              workflow={autoWorkflow}
-              data={autoData}
-              onWorkflowChange={setAutoWorkflow}
-            />
+            <>
+              {/* Sidebar */}
+              <div className="sidebar">
+                <AutoSubtitleSidebar 
+                  onGenerate={handleAutoGenerate}
+                  onDataChange={setAutoData}
+                />
+              </div>
+              
+              <AutoSubtitleContent 
+                workflow={autoWorkflow}
+                data={autoData}
+                onWorkflowChange={setAutoWorkflow}
+              />
+            </>
           ) : (
-            <ManualSubtitleContent />
+            <ManualSubtitleMode />
           )}
         </div>
       </div>
